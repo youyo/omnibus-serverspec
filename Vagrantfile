@@ -30,10 +30,10 @@ Vagrant.configure("2") do |config|
     git config --global user.email #{ENV['GIT_EMAIL']}
     git config --global user.name #{ENV['GIT_USERNAME']}
     curl -s https://packagecloud.io/install/repositories/youyo/omnibus-packages/script.rpm.sh | sudo bash
-    yum install -y omnibus-serverspec
-    /opt/ruby/bin/gem install bundler
+    yum install -y omnibus-ruby
+    /opt/omnibus-ruby/bin/gem install bundler
     cd /vagrant
-    /opt/ruby/bin/bundle install --binstubs
-    ./bin/omnibus build serverspec
+    /opt/omnibus-ruby/bin/bundle install --binstubs
+    ./bin/omnibus build omnibus-serverspec
   SHELL
 end
