@@ -1,0 +1,65 @@
+no-response-timeout: 60
+command-timeout: 60
+build:
+  box:
+    id: youyo/vagrant:1.9.1
+    cmd: /bin/bash
+  steps:
+    - script:
+      name: create .ssh directory
+      code: |-
+        mkdir ${HOME}/.ssh
+
+    - create-file:
+      name: put private key
+      filename: ${HOME}/.ssh/id_rsa
+      overwrite: true
+      hide-from-log: true
+      content: ${SSH_PRIVATE_KEY}
+
+    - create-file:
+      name: put public key
+      filename: ${HOME}/.ssh/id_rsa.pub
+      overwrite: true
+      hide-from-log: true
+      content: ${SSH_PUBLIC_KEY}
+
+    - script:
+      name: Modify Permission
+      code: |-
+        chmod 700 ${HOME}/.ssh
+        chmod 400 ${HOME}/.ssh/id_rsa
+
+    - script:
+      name: Build
+      code: |-
+        yum install openssh-clients rsync -y
+        vagrant up
+        vagrant ssh-config --host omnibus | tee ssh-config.txt
+        scp -F ssh-config.txt omnibus:/vagrant/pkg/*.rpm .
+
+  after-steps:
+    - script:
+      name: Destroy VM
+      code: |-
+        vagrant destroy -f
+
+    - slack-notifier:
+      url: ${SLACK_URL}
+
+publish:
+  box:
+    id: ruby:2.4-alpine
+    cmd: /bin/sh
+
+  steps:
+    - script:
+      name: Publish
+      code: |-
+        gem install package_cloud
+        package_cloud push youyo/omnibus-packages/${OS_RELEASE} *.rpm
+
+  after-steps:
+    - slack-notifier:
+      url: ${SLACK_URL}
+
