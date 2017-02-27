@@ -4,6 +4,7 @@ build:
   box:
     id: youyo/vagrant:1.9.1
     cmd: /bin/bash
+
   steps:
     - script:
       name: create .ssh directory
